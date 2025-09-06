@@ -3,7 +3,7 @@
 /// Using built-in square root functions is not allowed.
 pub fn sqrt(n: u32) -> u32 {
     if n < 2 {
-        return n;
+        n;
     }
 
     let mut x = n;
@@ -28,7 +28,7 @@ pub fn sqrt(n: u32) -> u32 {
 /// ```
 pub fn binary_search(arr: &[i32], query: i32) -> Option<u32> {
     if arr.len() == 0 {
-        return None;
+        None;
     }
 
     let mp = arr.len() / 2;
@@ -37,7 +37,7 @@ pub fn binary_search(arr: &[i32], query: i32) -> Option<u32> {
         std::cmp::Ordering::Less => binary_search(&arr[0..mp], query),
         std::cmp::Ordering::Greater => match binary_search(&arr[mp + 1..], query) {
             Some(n) => Some((mp as u32 + 1 as u32 + n as u32) as u32), // Great coding
-            None => return None,
+            None => None,
         },
         std::cmp::Ordering::Equal => Some(mp as u32),
     }
@@ -69,8 +69,8 @@ pub fn rainfall(values: &[i32]) -> Option<f64> {
 
     if count > 0 {
         println!("Some is {:?}", Some(sum / count as f64));
-        return Some(sum / count as f64);
+        Some(sum / count as f64);
     } else {
-        return None;
+       None;
     }
 }
