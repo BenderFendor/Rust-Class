@@ -49,9 +49,19 @@ pub struct Game {
     // TODO: Implement the Game struct
 }
 
+// So I need to get the height and width of the maze so the number of rows and columns one then get the x t and m and get their index so like. Get the location of thesues and its x and y position get the location of minotaur and get its x and y postion then make a grid that has like empty space which is any postion that is not covered by the x's
+
 impl Game {
     // TODO: replace the function body with your implementation
     pub fn from_board(board: &str) -> Result<Game, BoardError> {
+        
+        println!("{}",board);
+        let numofrows = board.lines().count();
+        println!{"{}",numofrows};
+        let numofcolumns = board.lines().next().unwrap().len();
+            
+        println!("{:?}",numofcolumns);
+
         return Ok(Game {
             grid: Grid {},
         });
