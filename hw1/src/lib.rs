@@ -35,21 +35,38 @@ impl Display for BoardError {
 }
 impl Error for BoardError {}
 
+struct GamePiece(x,y);
+
 #[derive(Clone)]
 pub struct Grid {
+    let mut wall = GamePiece(x,y);
+
+    let mut walls: Vec(GamePiece) = Vec::new();
     // TODO: Implement the Grid struct
 }
-impl Grid {
-    // TODO: Implement the Grid struct
+impl Grid() {
+    fn addwalls(self:wall(x,y))
+    {
+        walls.append(&self.wall);
+    }
+    fn initmino(GamePiece(x,y)) -> thesus
+    {
+        let mut mino = GamePiece(x,y);
+    }
+    fn initthesus(GamePiece(x,y)) -> thesus
+        let mut thesus = GamePiece(x,y);
 }
 
 #[derive(Clone)]
-pub struct Game {
+pub struct Game(&self) {
     grid: Grid,
     // TODO: Implement the Game struct
 }
 
 // So I need to get the height and width of the maze so the number of rows and columns one then get the x t and m and get their index so like. Get the location of thesues and its x and y position get the location of minotaur and get its x and y postion then make a grid that has like empty space which is any postion that is not covered by the x's
+
+// So I need an object for x that takes x and x has its position its x and y postions then you need
+// to make an array of this x's
 
 impl Game {
     // TODO: replace the function body with your implementation
@@ -57,10 +74,26 @@ impl Game {
         
         println!("{}",board);
         let numofrows = board.lines().count();
-        println!{"{}",numofrows};
+        println!{"Number of rows is :{}",numofrows};
         let numofcolumns = board.lines().next().unwrap().len();
             
-        println!("{:?}",numofcolumns);
+        println!("Number of columns is :{:?}",numofcolumns);
+        
+        for row in numofrows
+        {
+            for column in numofcolumns
+            {
+                if char = "X"
+                    addwalls(row,column);
+                if char = "M"
+                   initmino(row,column);
+                if char = "T"
+                    initthesus(row,column);
+                else
+                    println!("Its a space");
+            }
+        }
+        
 
         return Ok(Game {
             grid: Grid {},
