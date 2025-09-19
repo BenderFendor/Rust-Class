@@ -35,27 +35,29 @@ impl Display for BoardError {
 }
 impl Error for BoardError {}
 
-struct GamePiece(x,y);
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct GamePiece
+{
+    pub x: usize,
+    pub y: usize,
+}
 
 #[derive(Clone)]
 pub struct Grid {
-    let mut wall = GamePiece(x,y);
+    pub width: usize,
+    pub height: usize,
+    pub walls: Vec<GamePiece>,
+    pub minotaur: GamePiece,
+    pub theseus: GamePiece,
 
-    let mut walls: Vec(GamePiece) = Vec::new();
     // TODO: Implement the Grid struct
 }
-impl Grid() {
-    fn addwalls(self:wall(x,y))
+impl Grid {
+    fn AddWall(&mut self,WallPiece: GamePiece)
     {
-        walls.append(&self.wall);
+        self.walls.push(WallPiece);
     }
-    fn initmino(GamePiece(x,y)) -> thesus
-    {
-        let mut mino = GamePiece(x,y);
-    }
-    fn initthesus(GamePiece(x,y)) -> thesus
-        let mut thesus = GamePiece(x,y);
-}
+ }
 
 #[derive(Clone)]
 pub struct Game(&self) {
@@ -73,27 +75,51 @@ impl Game {
     pub fn from_board(board: &str) -> Result<Game, BoardError> {
         
         println!("{}",board);
-        let numofrows = board.lines().count();
-        println!{"Number of rows is :{}",numofrows};
-        let numofcolumns = board.lines().next().unwrap().len();
-            
-        println!("Number of columns is :{:?}",numofcolumns);
-        
-        for row in numofrows
+      
+        let lines: Vec<&str> = boards.lines().collect()
+        let numofrows = lens.len();
+
+        if numofrows == 0 {
+            return Err(BoardError::InvalidSize)
+        }
+        let numofcolumns = lines[0].len();
+
+        let mut walls = Vec::new()
+        let mut theseus_pos: Option<GamePiece> = None;
+        let mut minotaur_pos: Option<GamePiece>= None;
+
+        for y in 0..numofrows
         {
-            for column in numofcolumns
+            for x in 0..numofcolumns
             {
-                if char = "X"
-                    addwalls(row,column);
-                if char = "M"
-                   initmino(row,column);
-                if char = "T"
-                    initthesus(row,column);
+                let character = lines.[y].chars().nth(x); // I may change this to a match statement
+                if character == 'X'
+                {
+                    walls.push(GamePiece {x,y});
+                }
+                else if character == 'T' {
+                    thesus_pos = Some(GamePiece {x,y});
+                }
+                else if character == 'T' {
+                    minotaur_pos = Some(GamePiece{x, });
+                }
+                else if character == ' ' {
+                    
+                }
                 else
-                    println!("Its a space");
+                {
+                    other => return Err(BoardError::InvalidCharacter(other));
+                }
             }
         }
-        
+
+        let grid = Grid {
+            width: numofcolumns,
+            height: numofrows,
+            walls: walls,
+            thesus: thesus_pos,
+            minotaur: minotaur_pos,
+        }
 
         return Ok(Game {
             grid: Grid {},
