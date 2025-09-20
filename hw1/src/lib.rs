@@ -36,8 +36,7 @@ impl Display for BoardError {
 impl Error for BoardError {}
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct GamePiece
-{
+pub struct GamePiece {
     pub x: usize,
     pub y: usize,
 }
@@ -57,8 +56,7 @@ pub struct Grid {
     pub theseus: GamePiece,
     pub goal: GamePiece,
 }
-impl Grid {
-}
+impl Grid {}
 
 #[derive(Clone)]
 pub struct Game {
@@ -71,63 +69,71 @@ pub struct Game {
 // to make an array of this x's
 
 impl Game {
-    pub fn from_board(board: &str) -> Result<Game, BoardError> {      
+    pub fn from_board(board: &str) -> Result<Game, BoardError> {
         let lines: Vec<&str> = board.lines().collect();
         let numofrows = lines.len();
 
         if numofrows == 0 {
-            return Err(BoardError::InvalidSize)
+            return Err(BoardError::InvalidSize);
         }
         let numofcolumns = lines[0].len();
+        if numofcolumns == 0 {
+            return Err(BoardError::InvalidSize);
+        }
+        // Check all rows have the same length
+        for line in &lines {
+            if line.len() != numofcolumns {
+                return Err(BoardError::InvalidSize);
+            }
+        }
 
         let mut wallstoadd = Vec::new();
         let mut theseus_pos: Option<GamePiece> = None;
         let mut minotaur_pos: Option<GamePiece> = None;
         let mut goal_pos: Option<GamePiece> = None;
-        for y in 0..numofrows
-        {
-            for x in 0..numofcolumns
-            {
+        for y in 0..numofrows {
+            if numofcolumns == 0 {
+                return Err(BoardError::InvalidSize);
+            }
+            for x in 0..numofcolumns {
                 match lines[y].chars().nth(x) {
                     Some('X') => wallstoadd.push(GamePiece { x, y }),
                     Some('T') => {
                         if theseus_pos.is_some() {
-                           return Err(BoardError::MultipleTheseus);
+                            return Err(BoardError::MultipleTheseus);
                         }
                         theseus_pos = Some(GamePiece { x, y });
                     }
                     Some('M') => {
-                    if minotaur_pos.is_some() {
-                        return Err(BoardError::MultipleMinotaur);
-                    }
+                        if minotaur_pos.is_some() {
+                            return Err(BoardError::MultipleMinotaur);
+                        }
                         minotaur_pos = Some(GamePiece { x, y });
                     }
                     Some('G') => {
                         if goal_pos.is_some() {
                             return Err(BoardError::MultipleGoal);
                         }
-                    goal_pos = Some(GamePiece{x,y})
+                        goal_pos = Some(GamePiece { x, y })
                     }
-                
-                Some(' ') => {},
-                Some(c) => return Err(BoardError::InvalidCharacter(c)), 
-                None => return Err(BoardError::InvalidSize), 
-                }     
+
+                    Some(' ') => {}
+                    Some(c) => return Err(BoardError::InvalidCharacter(c)),
+                    None => return Err(BoardError::InvalidSize),
+                }
             }
         }
 
         let grid = Grid {
             width: numofcolumns,
             height: numofrows,
-            walls: wallstoadd, 
+            walls: wallstoadd,
             theseus: theseus_pos.ok_or(BoardError::NoTheseus)?,
-            minotaur: minotaur_pos.ok_or(BoardError::NoMinotaur)?, 
+            minotaur: minotaur_pos.ok_or(BoardError::NoMinotaur)?,
             goal: goal_pos.ok_or(BoardError::NoGoal)?,
         };
 
-        Ok(Game {
-            grid,
-        })
+        Ok(Game { grid })
     }
 
     pub fn show(&self) {
@@ -157,7 +163,6 @@ impl Game {
         let dist_x = (tx as isize - mx as isize).abs() as usize;
         let dist_y = (ty as isize - my as isize).abs() as usize;
 
-        // Check left: if valid and decreases x-distance
         if mx > 0 && !self.is_wall(my, mx - 1) {
             let new_mx = mx - 1;
             let new_dist_x = (tx as isize - new_mx as isize).abs() as usize;
@@ -167,7 +172,6 @@ impl Game {
             }
         }
 
-        // Check right: if valid and decreases x-distance
         if mx < self.grid.width - 1 && !self.is_wall(my, mx + 1) {
             let new_mx = mx + 1;
             let new_dist_x = (tx as isize - new_mx as isize).abs() as usize;
@@ -177,7 +181,6 @@ impl Game {
             }
         }
 
-        // Check up: if valid and decreases y-distance
         if my > 0 && !self.is_wall(my - 1, mx) {
             let new_my = my - 1;
             let new_dist_y = (ty as isize - new_my as isize).abs() as usize;
@@ -187,7 +190,6 @@ impl Game {
             }
         }
 
-        // Check down: if valid and decreases y-distance
         if my < self.grid.height - 1 && !self.is_wall(my + 1, mx) {
             let new_my = my + 1;
             let new_dist_y = (ty as isize - new_my as isize).abs() as usize;
@@ -221,11 +223,9 @@ impl Game {
                     new_pos.x += 1;
                 }
             }
-            Command::Skip => {
-            }
+            Command::Skip => {}
         }
 
-        // Only move Theseus if the new position is not a wall.
         if !self.is_wall(new_pos.y, new_pos.x) {
             self.grid.theseus.move_to(new_pos.x, new_pos.y);
         }
@@ -249,7 +249,7 @@ impl Game {
         self.grid.minotaur.y == row && self.grid.minotaur.x == col
     }
     pub fn is_wall(&self, row: usize, col: usize) -> bool {
-        self.grid.walls.iter().any(|w| w.y == row && w.x == col)
+        self.grid.walls.iter().any(|w| w.x == col && w.y == row)
     }
     pub fn is_goal(&self, row: usize, col: usize) -> bool {
         self.grid.goal.y == row && self.grid.goal.x == col
@@ -261,8 +261,6 @@ impl Game {
             && !self.is_wall(row, col)
     }
 }
-
-
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Command {
@@ -283,7 +281,7 @@ pub enum Command {
 //  let line = stdin.lines().next().unwrap().unwrap();
 //  ```
 //  This will read a line from the user and store it in the `buffer` string.
-//  
+//
 //  Unfortunately, since stdin is line-buffered, everytime you enter a command while playing the
 //  game you will have to press "enter" afterwards to send a new line.
 //
@@ -297,7 +295,7 @@ pub fn input(mut stdin: impl io::Read + io::BufRead) -> Option<Command> {
     if stdin.read_line(&mut buffer).is_err() {
         return None;
     }
-
+// I use both w/a/s/d and up/down/left/right to move and space or skip to skip
     match buffer.trim() {
         "w" | "up" => Some(Command::Up),
         "s" | "down" => Some(Command::Down),

@@ -37,6 +37,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize game struct
     let mut game = Game::from_board(&board)?;
 
+    println!("Welcome to Theseus and the Minotaur! use w/a/s/d and space to skip or right,left,up,down and skip to move");
+
     // Game loop
     loop {
         show_with_message(&game, "")?;
