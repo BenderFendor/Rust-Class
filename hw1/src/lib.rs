@@ -77,12 +77,27 @@ impl Game {
             return Err(BoardError::InvalidSize);
         }
         let numofcolumns = lines[0].len();
+        if numofcolumns == 0 {
+            return Err(BoardError::InvalidSize);
+        }
+        // Check all rows have the same length
+        for line in &lines {
+            if line.len() != numofcolumns {
+                return Err(BoardError::InvalidSize);
+            }
+        }
 
         let mut wallstoadd = Vec::new();
         let mut theseus_pos: Option<GamePiece> = None;
         let mut minotaur_pos: Option<GamePiece> = None;
         let mut goal_pos: Option<GamePiece> = None;
         for y in 0..numofrows {
+<<<<<<< HEAD
+=======
+            if numofcolumns == 0 {
+                return Err(BoardError::InvalidSize);
+            }
+>>>>>>> b293401d8b2ff0eb74628ea511042ef49010e91a
             for x in 0..numofcolumns {
                 match lines[y].chars().nth(x) {
                     Some('X') => wallstoadd.push(GamePiece { x, y }),
@@ -151,7 +166,6 @@ impl Game {
         let dist_x = (tx as isize - mx as isize).abs() as usize;
         let dist_y = (ty as isize - my as isize).abs() as usize;
 
-        // Check left: if valid and decreases x-distance
         if mx > 0 && !self.is_wall(my, mx - 1) {
             let new_mx = mx - 1;
             let new_dist_x = (tx as isize - new_mx as isize).abs() as usize;
@@ -161,7 +175,6 @@ impl Game {
             }
         }
 
-        // Check right: if valid and decreases x-distance
         if mx < self.grid.width - 1 && !self.is_wall(my, mx + 1) {
             let new_mx = mx + 1;
             let new_dist_x = (tx as isize - new_mx as isize).abs() as usize;
@@ -171,7 +184,6 @@ impl Game {
             }
         }
 
-        // Check up: if valid and decreases y-distance
         if my > 0 && !self.is_wall(my - 1, mx) {
             let new_my = my - 1;
             let new_dist_y = (ty as isize - new_my as isize).abs() as usize;
@@ -181,7 +193,6 @@ impl Game {
             }
         }
 
-        // Check down: if valid and decreases y-distance
         if my < self.grid.height - 1 && !self.is_wall(my + 1, mx) {
             let new_my = my + 1;
             let new_dist_y = (ty as isize - new_my as isize).abs() as usize;
@@ -218,7 +229,6 @@ impl Game {
             Command::Skip => {}
         }
 
-        // Only move Theseus if the new position is not a wall.
         if !self.is_wall(new_pos.y, new_pos.x) {
             self.grid.theseus.move_to(new_pos.x, new_pos.y);
         }
@@ -242,7 +252,7 @@ impl Game {
         self.grid.minotaur.y == row && self.grid.minotaur.x == col
     }
     pub fn is_wall(&self, row: usize, col: usize) -> bool {
-        self.grid.walls.iter().any(|w| w.y == row && w.x == col)
+        self.grid.walls.iter().any(|w| w.x == col && w.y == row)
     }
     pub fn is_goal(&self, row: usize, col: usize) -> bool {
         self.grid.goal.y == row && self.grid.goal.x == col
@@ -288,7 +298,11 @@ pub fn input(mut stdin: impl io::Read + io::BufRead) -> Option<Command> {
     if stdin.read_line(&mut buffer).is_err() {
         return None;
     }
+<<<<<<< HEAD
 // I use both for movement
+=======
+// I use both w/a/s/d and up/down/left/right to move and space or skip to skip
+>>>>>>> b293401d8b2ff0eb74628ea511042ef49010e91a
     match buffer.trim() {
         "w" | "up" => Some(Command::Up),
         "s" | "down" => Some(Command::Down),
