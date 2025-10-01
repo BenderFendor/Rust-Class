@@ -7,6 +7,7 @@ fn wait() {
 
 fn show_with_message(game: &Game, message: &str) -> Result<(), Box<dyn std::error::Error>> {
     game.show();
+    println!("Welcome to move use w,a,s,d or space to skip you can also use the words up,down,right,left or skip");
     println!("{}", message);
     Ok(())
 }

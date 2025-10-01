@@ -36,8 +36,7 @@ impl Display for BoardError {
 impl Error for BoardError {}
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct GamePiece
-{
+pub struct GamePiece {
     pub x: usize,
     pub y: usize,
 }
@@ -57,8 +56,7 @@ pub struct Grid {
     pub theseus: GamePiece,
     pub goal: GamePiece,
 }
-impl Grid {
-}
+impl Grid {}
 
 #[derive(Clone)]
 pub struct Game {
@@ -71,12 +69,12 @@ pub struct Game {
 // to make an array of this x's
 
 impl Game {
-    pub fn from_board(board: &str) -> Result<Game, BoardError> {      
+    pub fn from_board(board: &str) -> Result<Game, BoardError> {
         let lines: Vec<&str> = board.lines().collect();
         let numofrows = lines.len();
 
         if numofrows == 0 {
-            return Err(BoardError::InvalidSize)
+            return Err(BoardError::InvalidSize);
         }
         let numofcolumns = lines[0].len();
 
@@ -84,50 +82,46 @@ impl Game {
         let mut theseus_pos: Option<GamePiece> = None;
         let mut minotaur_pos: Option<GamePiece> = None;
         let mut goal_pos: Option<GamePiece> = None;
-        for y in 0..numofrows
-        {
-            for x in 0..numofcolumns
-            {
+        for y in 0..numofrows {
+            for x in 0..numofcolumns {
                 match lines[y].chars().nth(x) {
                     Some('X') => wallstoadd.push(GamePiece { x, y }),
                     Some('T') => {
                         if theseus_pos.is_some() {
-                           return Err(BoardError::MultipleTheseus);
+                            return Err(BoardError::MultipleTheseus);
                         }
                         theseus_pos = Some(GamePiece { x, y });
                     }
                     Some('M') => {
-                    if minotaur_pos.is_some() {
-                        return Err(BoardError::MultipleMinotaur);
-                    }
+                        if minotaur_pos.is_some() {
+                            return Err(BoardError::MultipleMinotaur);
+                        }
                         minotaur_pos = Some(GamePiece { x, y });
                     }
                     Some('G') => {
                         if goal_pos.is_some() {
                             return Err(BoardError::MultipleGoal);
                         }
-                    goal_pos = Some(GamePiece{x,y})
+                        goal_pos = Some(GamePiece { x, y })
                     }
-                
-                Some(' ') => {},
-                Some(c) => return Err(BoardError::InvalidCharacter(c)), 
-                None => return Err(BoardError::InvalidSize), 
-                }     
+
+                    Some(' ') => {}
+                    Some(c) => return Err(BoardError::InvalidCharacter(c)),
+                    None => return Err(BoardError::InvalidSize),
+                }
             }
         }
 
         let grid = Grid {
             width: numofcolumns,
             height: numofrows,
-            walls: wallstoadd, 
+            walls: wallstoadd,
             theseus: theseus_pos.ok_or(BoardError::NoTheseus)?,
-            minotaur: minotaur_pos.ok_or(BoardError::NoMinotaur)?, 
+            minotaur: minotaur_pos.ok_or(BoardError::NoMinotaur)?,
             goal: goal_pos.ok_or(BoardError::NoGoal)?,
         };
 
-        Ok(Game {
-            grid,
-        })
+        Ok(Game { grid })
     }
 
     pub fn show(&self) {
@@ -221,8 +215,7 @@ impl Game {
                     new_pos.x += 1;
                 }
             }
-            Command::Skip => {
-            }
+            Command::Skip => {}
         }
 
         // Only move Theseus if the new position is not a wall.
@@ -262,8 +255,6 @@ impl Game {
     }
 }
 
-
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Command {
     /// Move one tile up
@@ -283,7 +274,7 @@ pub enum Command {
 //  let line = stdin.lines().next().unwrap().unwrap();
 //  ```
 //  This will read a line from the user and store it in the `buffer` string.
-//  
+//
 //  Unfortunately, since stdin is line-buffered, everytime you enter a command while playing the
 //  game you will have to press "enter" afterwards to send a new line.
 //
@@ -297,7 +288,7 @@ pub fn input(mut stdin: impl io::Read + io::BufRead) -> Option<Command> {
     if stdin.read_line(&mut buffer).is_err() {
         return None;
     }
-
+// I use both for movement
     match buffer.trim() {
         "w" | "up" => Some(Command::Up),
         "s" | "down" => Some(Command::Down),
