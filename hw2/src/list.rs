@@ -37,11 +37,40 @@ impl<T> ListNode<T> {
     /// Inserts a new list node with value `value` after `self` and returns a reference to the new
     /// node
     pub fn insert(&mut self, value: T) -> &mut Self {
-        &mut ListNode::Cons(value, (Box::<ListNode<self>>))    
+     match self {
+         ListNode::Nil => {
+             *self = ListNode::Cons(value, (Box::new(ListNode::Nil)));
+             self
+         }
+         ListNode::Cons(_,next) => {
+             let orginal_next = mem::take(next);
+             let new_node = ListNode::Cons(value, (orginal_next));
+             *next = Box::new(new_node);
+
+             if let ListNode::Cons(_, new_next_ref) = self {
+                 &mut **new_next_ref
+             }
+             else { // This is new marco
+                 unreachable!()
+             }
+         }
+             
+     }
     }
+
     /// Reverses the list in place.
     pub fn reverse(&mut self) {
-        todo!()
+        let mut prev = ListNode::Nil;
+
+        let mut current = mem::take(self);
+
+        while let ListNode::Cons(value,next) = current {
+            previous = ListNode::Cons(value, (Box::new(previous)));
+
+                
+        current = *next;
+        }
+        *self = prev;
     }
 }
 
@@ -54,20 +83,62 @@ impl<T> Default for ListNode<T> {
 
 // Implement `PartialEq` for `ListNode<T>`
 // TODO:
-
+impl<T: PartialEq> PartialEq for ListNode<T> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (ListNode::Nil, ListNode::Nil) => true,
+            (ListNode::Nil, ListNode::Cons(_, _)) => false,
+            (ListNode::Cons(_, _), ListNode::Nil) => false,
+            (ListNode::Cons(a, next_a), ListNode::Cons(b, next_b)) => {
+                a == b && next_a == next_b
+            }
+        }
+    }
+}
 // Implement `Eq` for `ListNode<T>`
-// TODO:
-
-// Implement `Display` for `ListNode<T>`
-// TODO:
-impl <T> Display for ListNode<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result 
-    {
-        write!(f, "{} -> {}", self.value,self.next)
+impl <T> Eq for ListNode<T>{}
+impl <T: Display> Display for ListNode<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ListNode::Nil => write!(f, "Nil"),
+            ListNode::Cons(val, next) => {
+                // Write the current value, then recursively call on the next node
+                write!(f, "{} -> {}", val, next)
+            }
+        }
     }
 }
 // Implement `From<Vec<T>>` for `ListNode<T>`
-// TODO:
-
+impl<T> From<Vec<T>> for ListNode<T> {
+    fn from(vec: Vec<T>) -> Self {
+        let mut list = ListNode::new();
+        // Iterate in reverse to maintain the original order
+        for item in vec.into_iter().rev() {
+            list.insert(item); 
+        }
+        list
+    }
+}
 // Implement `From<ListNode<T>>` for `Vec<T>`
-// TODO:
+impl<T> From<ListNode<T>> for Vec<T> {
+    fn from(mut list: ListNode<T>) -> Self {
+        let mut vec = Vec::new();
+        let mut current = &mut list;
+        loop {
+            match current {
+                ListNode::Cons(val, next) => {
+                    break; 
+                },
+                ListNode::Nil => break,
+            }
+        }
+        
+        let mut vec = Vec::new();
+        let mut current = list;
+        while let ListNode::Cons(val, next) = current {
+            vec.insert(val);
+            current = *next;
+        }
+        vec
+    }
+}
