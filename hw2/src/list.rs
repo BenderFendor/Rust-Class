@@ -34,29 +34,24 @@ impl<T> ListNode<T> {
     pub fn new() -> Self {
         ListNode::Nil
     }
-    /// Inserts a new list node with value `value` after `self` and returns a reference to the new
-    /// node
     pub fn insert(&mut self, value: T) -> &mut Self {
-     match self {
-         ListNode::Nil => {
-             *self = ListNode::Cons(value, (Box::new(ListNode::Nil)));
-             self
-         }
-         ListNode::Cons(_,next) => {
-             let orginal_next = mem::take(next);
-             let new_node = ListNode::Cons(value, (orginal_next));
-             *next = Box::new(new_node);
+        match self {
+            ListNode::Nil => {
+                *self = ListNode::Cons(value, Box::new(ListNode::Nil));
+                self
+            }
+            ListNode::Cons(_, next) => {
+                let original_next = mem::take(next);
 
-             if let ListNode::Cons(_, new_next_ref) = self {
-                 &mut **new_next_ref
-             }
-             else { // This is new marco
-                 unreachable!()
-             }
-         }
-             
-     }
+                let new_node = ListNode::Cons(value, original_next);
+
+                *next = Box::new(new_node);
+
+                next.as_mut()
+            }
+        }
     }
+
 
     /// Reverses the list in place.
     pub fn reverse(&mut self) {
@@ -65,10 +60,8 @@ impl<T> ListNode<T> {
         let mut current = mem::take(self);
 
         while let ListNode::Cons(value,next) = current {
-            previous = ListNode::Cons(value, (Box::new(previous)));
-
-                
-        current = *next;
+            prev = ListNode::Cons(value, (Box::new(prev)));
+            current = *next;
         }
         *self = prev;
     }
@@ -96,8 +89,9 @@ impl<T: PartialEq> PartialEq for ListNode<T> {
     }
 }
 // Implement `Eq` for `ListNode<T>`
-impl <T> Eq for ListNode<T>{}
-impl <T: Display> Display for ListNode<T> {
+impl<T: PartialEq> Eq for ListNode<T> {}
+
+impl<T: Display> Display for ListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             ListNode::Nil => write!(f, "Nil"),
@@ -108,13 +102,14 @@ impl <T: Display> Display for ListNode<T> {
         }
     }
 }
+
 // Implement `From<Vec<T>>` for `ListNode<T>`
 impl<T> From<Vec<T>> for ListNode<T> {
     fn from(vec: Vec<T>) -> Self {
         let mut list = ListNode::new();
-        // Iterate in reverse to maintain the original order
         for item in vec.into_iter().rev() {
-            list.insert(item); 
+            let new_head = ListNode::Cons(item, Box::new(list));
+            list = new_head;
         }
         list
     }
@@ -123,21 +118,9 @@ impl<T> From<Vec<T>> for ListNode<T> {
 impl<T> From<ListNode<T>> for Vec<T> {
     fn from(mut list: ListNode<T>) -> Self {
         let mut vec = Vec::new();
-        let mut current = &mut list;
-        loop {
-            match current {
-                ListNode::Cons(val, next) => {
-                    break; 
-                },
-                ListNode::Nil => break,
-            }
-        }
-        
-        let mut vec = Vec::new();
-        let mut current = list;
-        while let ListNode::Cons(val, next) = current {
-            vec.insert(val);
-            current = *next;
+        while let ListNode::Cons(val, next) = list {
+            vec.push(val); 
+            list = *next;
         }
         vec
     }
