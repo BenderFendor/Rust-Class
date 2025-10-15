@@ -1,6 +1,6 @@
 // RPG Data Structures and Iterators Assignment
 
-use std::collections::HashMap;
+use std::{collections::HashMap, string};
 
 /// A struct representing a playable character in the RPG.
 #[derive(Debug, PartialEq, Clone)]
@@ -65,8 +65,10 @@ pub fn q1_create_inventory(unique_item: &str) -> Vec<String> {
     let mut inventory = Vec::new();
 
     // TODO: push() the starting items (Rusty Sword, Healing Potion) to the inventory vec
-
+    inventory.push(String::from("Rusty Sword"));
+    inventory.push(String::from("Healing Potion"));
     // TODO: push() the unique_item to the vec
+    inventory.push(String::from(unique_item));
 
     inventory
 }
@@ -95,6 +97,10 @@ pub fn q2_initialize_stats(name: &str) -> HashMap<String, u32> {
     // "Stamina" should have value 50
     // "Mana" should have value 25
 
+    stats.insert(String::from("Health"), 100);
+    stats.insert(String::from("Stamina"), 50);
+    stats.insert(String::from("Mana"), 25);
+
     stats
 }
 
@@ -104,7 +110,7 @@ fn test_q2_initialize_stats() {
     assert!(stats.contains_key("Health"));
     assert_eq!(*stats.get("Health").unwrap(), 100);
     assert_eq!(*stats.get("Stamina").unwrap(), 50);
-    assert_eq!(*stats.get("Mana").unwrap(), 100);
+    assert_eq!(*stats.get("Mana").unwrap(), 25);
 }
 
 // Question 3: Displaying Quests
@@ -116,7 +122,13 @@ pub fn q3_list_quests(quest_log: &Vec<String>) -> Vec<String> {
     // Use .iter().enumerate() to get both the index (i) and a reference (&quest)
     // You can use a for loop OR try using .map(...).collect() (look at Vec documentation!)
 
-    todo!()
+    let mut formatted_quests = vec![];
+
+    for (i,quest) in quest_log.iter().enumerate()
+    {
+      formatted_quests.push(format!("{}. {}",i+1,quest))
+    }
+    formatted_quests
 }
 
 #[test]
@@ -138,7 +150,12 @@ fn test_q3_list_quests() {
 pub fn q4_apply_buff(party: &mut Vec<Character>, buff_amount: u32) {
 
     // TODO: apply the same buff_amount to all characters in the party
-    // Use iter_mut() to modify each character in the party
+    // Use iter_mut() to modify each character in the party_vec
+
+    for char in party
+    {
+        char.attack += buff_amount
+    }
 }
 
 #[test]
@@ -161,6 +178,11 @@ pub fn q5_process_loot(loot_pile: Vec<Item>) -> u32 {
     // TODO: calculate the total value of a vector of loot, comsuming the item list in the process
     // Use into_iter(), which moves ownership out of the Vec
 
+    for loot in loot_pile.into_iter()
+    {
+        total_value += loot.value;
+    }
+
     total_value
 }
 
@@ -180,7 +202,8 @@ pub fn q6_track_kill(kill_counts: &mut HashMap<String, u32>, enemy_name: &str) {
     // TODO: Update a kill counter for a specific enemy.
     // If the enemy is new, add it with a count of 1.
     // If the enemy is already in the vector exists, increment the count.
-
+    // To me this is ugly looking
+    kill_counts.entry(String::from(enemy_name)).and_modify(|count|*count += 1).or_insert(1);
     // Use entry(). (Look at the HashMap documentation!)
     // and_modify() and or_insert() might also be helpful! :)
 }
