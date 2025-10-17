@@ -227,7 +227,7 @@ pub fn q7_calculate_total_power(active_party: &HashMap<String, Character>) -> u3
     // Use values() to get an iterator over references to the Character structs.
     // You can use a for loop OR try map().sum()
 
-    todo!()
+    active_party.values().map(|character| character.attack).sum()
 }
 
 #[test]
@@ -250,8 +250,7 @@ fn test_q7_calculate_total_power() {
 pub fn q8_find_legendary_items(drops: &Vec<(String, Item)>) -> Vec<String> {
     // TODO: use filter(...).map(...).collect() to filter out the legendary items from the drops
     // list and return only the names of the legendary items.
-
-    todo!()
+   drops.iter().filter(|(_,item)|item.is_legendary).map(|(_,item)|item.name.clone()).collect()
 }
 
 #[test]
