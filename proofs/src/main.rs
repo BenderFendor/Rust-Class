@@ -65,11 +65,10 @@ fn main() {
     verifier_key.verify();
 
     // Leave commented - we will talk about this when the assignment is complete
-    /*
-
+    
      let verifier_handle = thread::spawn(move || {
          verifier_key.verify();
      });
 
-    */
+    
 }
