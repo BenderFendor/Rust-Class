@@ -103,7 +103,6 @@ pub fn test_impls_partialeq_5() {
     }
 }
 
-
 /// This test checks that `ListNode` properly implements `Eq`
 
 #[test]
@@ -194,7 +193,6 @@ pub fn test_impls_display_3() {
     assert_eq!(format!("{}", list3), "Nil");
 }
 
-
 /// This test checks that the `insert` works in a simple case
 #[test]
 pub fn test_insert_simple_3() {
@@ -248,7 +246,6 @@ pub fn test_insert_7() {
     quickcheck(insert_is_valid as fn(Vec<i32>) -> bool);
 }
 
-
 /// This test uses "property-based testing": this means it generates random test cases
 /// and checks that a property holds for all of them.
 /// In this case, the property is that converting a `Vec<i32>` to a `ListNode<i32>` and
@@ -286,7 +283,6 @@ pub fn test_reverse_7() {
     quickcheck(reverse_is_valid as fn(Vec<i32>) -> bool);
 }
 
-
 /// This test checks that `ListNode` properly implements `From<Vec>`
 
 #[test]
@@ -315,7 +311,6 @@ pub fn test_impls_list_from_vec_3() {
     assert!(false);
 }
 
-
 /// This test checks that Vec properly implements `From<ListNode>`
 
 #[test]
@@ -332,19 +327,15 @@ pub fn test_impls_vec_from_list_3() {
     assert_eq!(v.len(), 3);
 
     match v[0] {
-        Num(1) => {
-            match v[1] {
-                Num(2) => {
-                    match v[2] {
-                        Num(3) => {
-                            return;
-                        }
-                        _ => {}
-                    }
+        Num(1) => match v[1] {
+            Num(2) => match v[2] {
+                Num(3) => {
+                    return;
                 }
                 _ => {}
-            }
-        }
+            },
+            _ => {}
+        },
         _ => {}
     };
     eprintln!(
@@ -352,7 +343,6 @@ pub fn test_impls_vec_from_list_3() {
         file!()
     );
 }
-
 
 /// This test uses "property-based testing": this means it generates random test cases
 /// and checks that a property holds for all of them.

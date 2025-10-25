@@ -1,7 +1,7 @@
 use std::collections::hash_map::Values;
+use std::fmt;
 #[allow(unused_imports)]
 use std::{fmt::Display, mem};
-use std::fmt;
 
 #[derive(Debug)]
 pub enum ListNode<T> {
@@ -10,22 +10,22 @@ pub enum ListNode<T> {
 }
 
 impl<T> ListNode<T> {
-  // Use the implementation of this method to guide your implementation of
-  // `insert` and `reverse`
-  /// Deletes a node from the list
-  pub fn delete(&mut self) {
-    // Temporarily replaces the current node with default value (Nil).
-    // In exchange, we get to take ownership of the current node instead of just
-    // having it by mutable reference.
-    let as_owned: ListNode<T> = mem::take(self);
-    match as_owned {
-      ListNode::Nil => {}
-      ListNode::Cons(_, next) => {
-        // Write the next node to the current node
-        *self = *next;
-      }
+    // Use the implementation of this method to guide your implementation of
+    // `insert` and `reverse`
+    /// Deletes a node from the list
+    pub fn delete(&mut self) {
+        // Temporarily replaces the current node with default value (Nil).
+        // In exchange, we get to take ownership of the current node instead of just
+        // having it by mutable reference.
+        let as_owned: ListNode<T> = mem::take(self);
+        match as_owned {
+            ListNode::Nil => {}
+            ListNode::Cons(_, next) => {
+                // Write the next node to the current node
+                *self = *next;
+            }
+        }
     }
-  }
 }
 
 // Required methods for `ListNode<T>`
@@ -52,14 +52,13 @@ impl<T> ListNode<T> {
         }
     }
 
-
     /// Reverses the list in place.
     pub fn reverse(&mut self) {
         let mut prev = ListNode::Nil;
 
         let mut current = mem::take(self);
 
-        while let ListNode::Cons(value,next) = current {
+        while let ListNode::Cons(value, next) = current {
             prev = ListNode::Cons(value, (Box::new(prev)));
             current = *next;
         }
@@ -82,9 +81,7 @@ impl<T: PartialEq> PartialEq for ListNode<T> {
             (ListNode::Nil, ListNode::Nil) => true,
             (ListNode::Nil, ListNode::Cons(_, _)) => false,
             (ListNode::Cons(_, _), ListNode::Nil) => false,
-            (ListNode::Cons(a, next_a), ListNode::Cons(b, next_b)) => {
-                a == b && next_a == next_b
-            }
+            (ListNode::Cons(a, next_a), ListNode::Cons(b, next_b)) => a == b && next_a == next_b,
         }
     }
 }
@@ -119,7 +116,7 @@ impl<T> From<ListNode<T>> for Vec<T> {
     fn from(mut list: ListNode<T>) -> Self {
         let mut vec = Vec::new();
         while let ListNode::Cons(val, next) = list {
-            vec.push(val); 
+            vec.push(val);
             list = *next;
         }
         vec

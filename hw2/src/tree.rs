@@ -1,6 +1,6 @@
+use std::clone::Clone;
 #[allow(unused_imports)]
 use std::{cmp::Ord, mem};
-use std::clone::Clone;
 
 #[derive(Clone, Debug)]
 pub enum TreeNode<T: Ord> {
@@ -101,9 +101,7 @@ impl<T: Ord> TreeNode<T> {
     fn balance_factor(&self) -> i32 {
         match self {
             TreeNode::Leaf => 0,
-            TreeNode::Node(_, left, right) => {
-                left.height() as i32 - right.height() as i32
-            }
+            TreeNode::Node(_, left, right) => left.height() as i32 - right.height() as i32,
         }
     }
 
@@ -115,17 +113,15 @@ impl<T: Ord> TreeNode<T> {
             TreeNode::Leaf => {
                 *self = TreeNode::Leaf;
             }
-            TreeNode::Node(value, left, right) => {
-                match *right {
-                    TreeNode::Leaf => {
-                        *self = TreeNode::Node(value, left, Box::new(TreeNode::Leaf));
-                    }
-                    TreeNode::Node(right_value, right_left, right_right) => {
-                        let new_left = TreeNode::Node(value, left, right_left);
-                        *self = TreeNode::Node(right_value, Box::new(new_left), right_right);
-                    }
+            TreeNode::Node(value, left, right) => match *right {
+                TreeNode::Leaf => {
+                    *self = TreeNode::Node(value, left, Box::new(TreeNode::Leaf));
                 }
-            }
+                TreeNode::Node(right_value, right_left, right_right) => {
+                    let new_left = TreeNode::Node(value, left, right_left);
+                    *self = TreeNode::Node(right_value, Box::new(new_left), right_right);
+                }
+            },
         }
     }
 
@@ -137,17 +133,15 @@ impl<T: Ord> TreeNode<T> {
             TreeNode::Leaf => {
                 *self = TreeNode::Leaf;
             }
-            TreeNode::Node(value, left, right) => {
-                match *left {
-                    TreeNode::Leaf => {
-                        *self = TreeNode::Node(value, Box::new(TreeNode::Leaf), right);
-                    }
-                    TreeNode::Node(left_value, left_left, left_right) => {
-                        let new_right = TreeNode::Node(value, left_right, right);
-                        *self = TreeNode::Node(left_value, left_left, Box::new(new_right));
-                    }
+            TreeNode::Node(value, left, right) => match *left {
+                TreeNode::Leaf => {
+                    *self = TreeNode::Node(value, Box::new(TreeNode::Leaf), right);
                 }
-            }
+                TreeNode::Node(left_value, left_left, left_right) => {
+                    let new_right = TreeNode::Node(value, left_right, right);
+                    *self = TreeNode::Node(left_value, left_left, Box::new(new_right));
+                }
+            },
         }
     }
 

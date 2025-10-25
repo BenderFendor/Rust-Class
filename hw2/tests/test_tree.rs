@@ -21,7 +21,9 @@ fn validate<T: Ord>(node: &TreeNode<T>) -> bool {
             TreeNode::Node(_, left, right) => {
                 let x = property2(left)?;
                 let y = property2(right)?;
-                Some((x - y).abs()).filter(|x| x <= &1).map(|_| 1 + x.max(y))
+                Some((x - y).abs())
+                    .filter(|x| x <= &1)
+                    .map(|_| 1 + x.max(y))
             }
         }
     }
@@ -48,7 +50,6 @@ pub fn test_impls_default_5() {
         }
     }
 }
-
 
 /// This test checks that `TreeNode` properly implements `Eq`
 #[test]
@@ -126,7 +127,6 @@ pub fn test_impls_eq_5() {
         assert!(false);
     }
 }
-
 
 /// This test checks that inserting duplicate values does not affect the tree.
 #[test]
