@@ -369,5 +369,4 @@ pub fn test_vec_to_list_to_vec_roundtrip_8() {
     quickcheck(roundtrip as fn(Vec<i32>));
 }
 
-
 const _UNUSED: bool = true;
