@@ -1,7 +1,8 @@
 use std::cell::RefCell;
+use std::num::IntErrorKind;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
-use std::thread;
+use std::{clone, thread};
 
 // Node for Questions 3-5.
 // It uses Rc<RefCell<...>> for shared, optional, and mutable pointers.
@@ -16,14 +17,18 @@ fn new_shared_node(value: i32) -> Rc<RefCell<Node>> {
 
 /// Q1: Shared Ownership
 fn q1_shared_rc_count() -> usize {
-    todo!()
     // TODO:
     // 1. Create a `shared_value` usize (e.g., 42).
     // 2. Wrap it in Rc.
     // 3. Clone the Rc (creating a second owner).
 
+    
+    let shared_value = Rc::new(RefCell::new(20));
+
+    let copy_value = shared_value.clone();
+
     // 4. Uncomment this (Return the number of things that own your shared value)
-    // Rc::strong_count(&shared_value)
+    Rc::strong_count(&shared_value)
 }
 
 #[cfg(test)]
@@ -38,11 +43,15 @@ fn test_q1_shared_rc_count() {
 
 /// Q2: Interior Mutability
 fn q2_interior_mutability() -> i32 {
-    todo!()
     // 1. Create RefCell<i32> with initial value 5.
     // 2. Use `borrow_mut()` to get a mutable reference.
     // 3. Change the value to 100.
     // 4. Return the new value (by using `borrow()` (borrowing immutably) after the mutable borrow drops).
+    
+    let interior_mut = Rc::new(RefCell<i32>::new(5));
+
+    interior_mut.borrow_mut() = 100;
+
 }
 
 #[cfg(test)]
