@@ -5,13 +5,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?
         .text()
         .await?;
-  
-    println!("{}",body);
 
     match Feed::parse(&body) {
         Ok(feed) => {
             println!("Successfully parsed the feed.");
-            println!("{:#?}", feed); 
+            println!("{:#?}", feed);
         }
         Err(e) => {
             eprintln!("Error parsing the feed: {}", e);
