@@ -10,6 +10,8 @@ pub struct Article {
     pub url: String,
     pub desc: String,
     pub categories: Vec<String>, 
+    pub content: String,
+    pub image_url: String,
 }
 
 #[derive(Debug, Default)] // I don't think you can derive display here so I would have to make my
@@ -28,16 +30,16 @@ impl Feed {
         let mut feed = Feed::default();
         let mut current_article = Article::default();
         let mut parsing_article = false;
-        let mut last_tag_name: Option<Vec<u8>> = None; 
+        let mut last_tag_name: Option<String> = None; 
 
         loop {
             match reader.read_event_into(&mut buf) {
                 Ok(Event::Start(e)) => {
-                    let name = e.name().as_ref().to_vec(); // Convert to owned vector
-                    last_tag_name = Some(name.clone());
+                let tag_name = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                last_tag_name = Some(tag_name.clone());
 
-                    match name.as_slice() {
-                        b"item" => {
+                    match tag_name.as_str() {
+                        "item" => {
                             parsing_article = true;
                             current_article = Article::default();
                         }
@@ -50,33 +52,45 @@ impl Feed {
                     let content = e.decode()?.into_owned();
                     
                     if let Some(ref tag_name) = last_tag_name {
-                        match tag_name.as_slice() {
-                            b"title" if !parsing_article => {
+                        match tag_name.as_str() {
+                            "title" if !parsing_article => {
                                 feed.name = content;
                             }
-                            b"title" if parsing_article => {
+                            "title" if parsing_article => {
                                 current_article.title = content;
                             }
-                            b"link" if parsing_article => {
+                            "link" if parsing_article => {
                                 current_article.url = content;
                             }
-                            b"pubDate" if parsing_article => {
+                            "pubDate" if parsing_article => {
                                 current_article.date = content;
                             }
-                            b"description" if parsing_article => {
+                            "description" if parsing_article => {
                                 current_article.desc = content;
                             }
-                            b"dc:creator" if parsing_article => {
+                            "dc:creator" if parsing_article => {
                                 current_article.author = content;
                             }
-                            b"category" if parsing_article => {
+                            "category" if parsing_article => {
                                 current_article.categories.push(content);
                             }
                             _ => {}
                         }
                     }
                 }
-                
+                Ok(Event::Empty(e)) => {
+                    let tag_name = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                    
+                    if parsing_article && tag_name == "enclosure" {
+                        for attr in e.attributes() {
+                            if let Ok(attr) = attr {
+                                if attr.key.as_ref() == b"url" {
+                                    current_article.image_url = String::from_utf8_lossy(&attr.value).to_string();
+                                }
+                            }
+                        }
+                    }
+                }
                 Ok(Event::End(e)) => {
                     if e.name().as_ref() == b"item" {
                         parsing_article = false;
