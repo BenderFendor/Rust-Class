@@ -1,7 +1,69 @@
 use quick_xml::Reader;
 use quick_xml::events::Event;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default)] // So the idea here was to get this parser to work with feeds with
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Source { // This is specific to my implementation with my thesis and not part of RSS spec
+    pub url: String,
+    pub category: String,
+    pub country: String,
+    pub funding_type: String,
+    pub bias_rating: String,
+}
+
+pub struct Sources {
+    pub feeds: Vec<(Source, Feed)>,
+}
+impl Sources {
+    pub fn new() -> Self {
+        Sources { feeds: Vec::new() }
+    }
+    
+    pub async fn fetch_from_urls(
+        urls: Vec<(String, Source)>,
+    ) -> Result<Sources, Box<dyn std::error::Error>> {
+        let mut sources = Sources::new();
+        let mut tasks = vec![];
+        
+        for (url, source) in urls {
+            let task = tokio::spawn(async move {
+                match reqwest::get(&url).await {
+                    Ok(response) => {
+                        match response.text().await {
+                            Ok(body) => {
+                                match Feed::parse(&body) {
+                                    Ok(feed) => Some((source, feed)),
+                                    Err(e) => {
+                                        eprintln!("Error parsing feed from {}: {}", url, e);
+                                        None
+                                    }
+                                }
+                            }
+                            Err(e) => {
+                                eprintln!("Error fetching text from {}: {}", url, e);
+                                None
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Error fetching {}: {}", url, e);
+                        None
+                    }
+                }
+            });
+            tasks.push(task);
+        }
+        
+        for task in tasks {
+            if let Ok(Some((source, feed))) = task.await {
+                sources.feeds.push((source, feed));
+            }
+        }
+        
+        Ok(sources)
+    }
+}
+#[derive(Debug, Default, Serialize, Deserialize)] // So the idea here was to get this parser to work with feeds with
 // articles as vecs of articles
 pub struct Article {
     pub author: String,
@@ -14,7 +76,7 @@ pub struct Article {
     pub image_url: String,
 }
 
-#[derive(Debug, Default)] // I don't think you can derive display here so I would have to make my
+#[derive(Debug, Default, Serialize, Deserialize)] // I don't think you can derive display here so I would have to make my
 // own method for displaying feeds and articles
 #[allow(non_snake_case)] // I like having it the same is the RSS feed var names
 pub struct Feed {
@@ -51,12 +113,13 @@ impl Feed { // Also I was looking it up and you can handle most of this with a D
         current_article: &mut Article,
     ) 
     {
-        let content_preview: String = content.chars().take(40).collect();
-        println!(
-            "tag: {} | content: {}",
-            last_tag_name.as_deref().unwrap_or("none"),
-            &content_preview
-        );
+        // this was needed for debug purposes but it adds to much clutter. Maybe should have print into log file
+        // let content_preview: String = content.chars().take(40).collect();
+        // println!(
+        //     "tag: {} | content: {}",
+        //     last_tag_name.as_deref().unwrap_or("none"),
+        //     &content_preview
+        // );
 
         if let Some(tag_name) = last_tag_name {
             match tag_name.as_str() {
@@ -164,7 +227,17 @@ impl Feed { // Also I was looking it up and you can handle most of this with a D
         let mut feed = Feed::default();
         let mut current_article = Article::default();
         let mut parsing_article = false;
+        let mut parsing_image = false;
         let mut last_tag_name: Option<String> = None;
+
+        fn push_enclosure_url(article: &mut Article, url: String) {
+            if article.image_url.is_empty() {
+                article.image_url = url;
+            } else {
+                article.image_url.push_str(", ");
+                article.image_url.push_str(&url);
+            }
+        }
 
         loop {
             match reader.read_event_into(&mut buf) {
@@ -177,53 +250,86 @@ impl Feed { // Also I was looking it up and you can handle most of this with a D
                             parsing_article = true;
                             current_article = Article::default();
                         }
+                        "image" if !parsing_article => {
+                            parsing_image = true;
+                        }
+                        "enclosure" if parsing_article => {
+                            if let Some(url) = e
+                                .attributes()
+                                .filter_map(|a| a.ok())
+                                .find(|a| a.key.as_ref() == b"url")
+                                .and_then(|a| a.unescape_value().ok())
+                            {
+                                push_enclosure_url(&mut current_article, url.to_string());
+                            }
+                        }
                         _ => {}
+                    }
+                }
+
+                Ok(Event::Empty(e)) => {
+                    let tag_name = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                    last_tag_name = Some(tag_name.clone());
+
+                    if tag_name == "enclosure" && parsing_article {
+                        if let Some(url) = e
+                            .attributes()
+                            .filter_map(|a| a.ok())
+                            .find(|a| a.key.as_ref() == b"url")
+                            .and_then(|a| a.unescape_value().ok())
+                        {
+                            push_enclosure_url(&mut current_article, url.to_string());
+                        }
                     }
                 }
 
                 Ok(Event::Text(e)) => {
                     let content = e.decode()?.into_owned();
-                    Self::handle_text_content(
-                        content,
-                        &last_tag_name,
-                        parsing_article,
-                        &mut feed,
-                        &mut current_article,
-                    );
-                }
-                Ok(Event::CData(e)) => {
-                    let content = e.decode()?.into_owned();
-                    Self::handle_text_content(
-                        content,
-                        &last_tag_name,
-                        parsing_article,
-                        &mut feed,
-                        &mut current_article,
-                    );
-                }
-                Ok(Event::Empty(e)) => {
-                    let name_bytes = e.name();
-                    let tag_name = String::from_utf8_lossy(name_bytes.as_ref());
-
-                    if parsing_article && tag_name == "enclosure" {
-                        for attr in e.attributes() {
-                            if let Ok(attr) = attr {
-                                if attr.key.as_ref() == b"url" {
-                                    let url = String::from_utf8_lossy(&attr.value).to_string();
-                                    if !current_article.image_url.is_empty() {
-                                        current_article.image_url.push_str(", ");
-                                    }
-                                    current_article.image_url.push_str(&url);
-                                }
-                            }
-                        }
+                    
+                    if parsing_image
+                        && (last_tag_name.as_deref() == Some("url")
+                            || last_tag_name.as_deref() == Some("image"))
+                    {
+                        feed.image = content;
+                    } else if !parsing_image {
+                        Self::handle_text_content(
+                            content,
+                            &last_tag_name,
+                            parsing_article,
+                            &mut feed,
+                            &mut current_article,
+                        );
                     }
                 }
+
+                Ok(Event::CData(e)) => {
+                    let content = e.decode()?.into_owned();
+
+                    if parsing_image
+                        && (last_tag_name.as_deref() == Some("url")
+                            || last_tag_name.as_deref() == Some("image"))
+                    {
+                        feed.image = content;
+                    } else if !parsing_image {
+                        Self::handle_text_content(
+                            content,
+                            &last_tag_name,
+                            parsing_article,
+                            &mut feed,
+                            &mut current_article,
+                        );
+                    }
+                }
+
                 Ok(Event::End(e)) => {
-                    if e.name().as_ref() == b"item" {
+                    let tag_name = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                    
+                    if tag_name == "item" {
                         parsing_article = false;
                         feed.articles.push(current_article);
-                        current_article = Article::default(); // This clears categories for next article
+                        current_article = Article::default();
+                    } else if tag_name == "image" {
+                        parsing_image = false;
                     }
                 }
 
