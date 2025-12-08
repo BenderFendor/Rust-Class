@@ -1,3 +1,5 @@
+use std::time::SystemTime;
+use totp_rs::{Algorithm, TOTP, Secret};
 use rssparser::{Source, Sources};
 use std::collections::BTreeMap;
 
@@ -63,5 +65,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    let totp = TOTP::new(
+       Algorithm::SHA1,
+       6,
+       1,
+       30,
+       Secret::Raw("TestSecretSuperSecret".as_bytes().to_vec()).to_bytes().unwrap(),
+       Some("MyRSS".to_string()),
+       "jgreen_03@arcadia.edu".to_string(),
+    ).unwrap();
+    let token = totp.generate_current().unwrap();
+    println!("Send your email {}", token);
+    
     Ok(())
 }
