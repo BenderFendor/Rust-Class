@@ -1,9 +1,11 @@
 use quick_xml::Reader;
 use quick_xml::events::Event;
 use serde::{Deserialize, Serialize};
+use tokio::time::{Duration, timeout};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Source { // This is specific to my implementation with my thesis and not part of RSS spec
+pub struct Source {
+    // This is specific to my implementation with my thesis and not part of RSS spec
     pub url: String,
     pub category: String,
     pub country: String,
@@ -18,48 +20,60 @@ impl Sources {
     pub fn new() -> Self {
         Sources { feeds: Vec::new() }
     }
-    
+
     pub async fn fetch_from_urls(
         urls: Vec<(String, Source)>,
     ) -> Result<Sources, Box<dyn std::error::Error>> {
         let mut sources = Sources::new();
         let mut tasks = vec![];
-        
+
         for (url, source) in urls {
             let task = tokio::spawn(async move {
-                match reqwest::get(&url).await {
-                    Ok(response) => {
-                        match response.text().await {
-                            Ok(body) => {
-                                match Feed::parse(&body) {
-                                    Ok(feed) => Some((source, feed)),
-                                    Err(e) => {
-                                        eprintln!("Error parsing feed from {}: {}", url, e);
-                                        None
-                                    }
+
+
+                let copyurl = url.clone(); // master coder here.
+
+                // Bound the entire fetch+parse operation to 5 seconds. As I had this hanging for a
+                // good bit it was like 5 minutes
+                match timeout(Duration::from_secs(5), async move {
+                    match reqwest::get(&url).await {
+                        Ok(response) => match response.text().await {
+                            Ok(body) => match Feed::parse(&body) {
+                                Ok(feed) => Some((source, feed)),
+                                Err(e) => {
+                                    eprintln!("Error parsing feed from {}: {}", url, e);
+                                    None
                                 }
-                            }
+                            },
                             Err(e) => {
                                 eprintln!("Error fetching text from {}: {}", url, e);
                                 None
                             }
+                        },
+                        Err(e) => {
+                            eprintln!("Error fetching {}: {}", url, e);
+                            None
                         }
                     }
-                    Err(e) => {
-                        eprintln!("Error fetching {}: {}", url, e);
+                })
+                .await
+                {
+                    Ok(result_opt) => result_opt,
+                    Err(_) => {
+                        eprintln!("Timeout fetching {} after 5s", copyurl);
                         None
                     }
                 }
             });
             tasks.push(task);
         }
-        
+
         for task in tasks {
             if let Ok(Some((source, feed))) = task.await {
                 sources.feeds.push((source, feed));
             }
         }
-        
+
         Ok(sources)
     }
 }
@@ -76,7 +90,8 @@ pub struct Article {
     pub image_url: String,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)] // I don't think you can derive display here so I would have to make my
+#[derive(Debug, Default, Serialize, Deserialize)]
+// I don't think you can derive display here so I would have to make my
 // own method for displaying feeds and articles
 #[allow(non_snake_case)] // I like having it the same is the RSS feed var names
 pub struct Feed {
@@ -103,16 +118,16 @@ pub struct Feed {
 /* https://www.rssboard.org/rss-specification So that is the RSS Spec which is from 2009 so its
  * been "frozen" since then. The feed spec is for the rss 2.0 ver but there are other older ones as well*/
 
-impl Feed { // Also I was looking it up and you can handle most of this with a Deserializer so I
-            // wouldn't have to hard code it but it seems to simple and I think misses encoded tags
+impl Feed {
+    // Also I was looking it up and you can handle most of this with a Deserializer so I
+    // wouldn't have to hard code it but it seems to simple and I think misses encoded tags
     fn handle_text_content(
         content: String,
         last_tag_name: &Option<String>,
         parsing_article: bool,
         feed: &mut Feed,
         current_article: &mut Article,
-    ) 
-    {
+    ) {
         // this was needed for debug purposes but it adds to much clutter. Maybe should have print into log file
         // let content_preview: String = content.chars().take(40).collect();
         // println!(
@@ -123,14 +138,15 @@ impl Feed { // Also I was looking it up and you can handle most of this with a D
 
         if let Some(tag_name) = last_tag_name {
             match tag_name.as_str() {
-
-                "title" if !parsing_article => { // !parsing_article just means it's an feed object
+                "title" if !parsing_article => {
+                    // !parsing_article just means it's an feed object
                     feed.name = content;
                 }
-                "description" if !parsing_article => { // It really seems stupid to make this many
-                                                       // hardcoded if statements. Like it 99%
-                                                       // boilerplate here
-                   feed.description = content;
+                "description" if !parsing_article => {
+                    // It really seems stupid to make this many
+                    // hardcoded if statements. Like it 99%
+                    // boilerplate here
+                    feed.description = content;
                 }
                 "link" if !parsing_article => {
                     feed.link = content;
@@ -147,21 +163,17 @@ impl Feed { // Also I was looking it up and you can handle most of this with a D
                 "managingEditor" if !parsing_article => {
                     feed.managingEditor = content;
                 }
-                "webMaster" if !parsing_article => {
-                    feed.webMaster = content
-                }
+                "webMaster" if !parsing_article => feed.webMaster = content,
                 "pubDate" if !parsing_article => {
                     feed.pubDate = content;
                 }
                 "lastBuildDate" if !parsing_article => {
                     feed.lastBuildDate = content;
                 }
-                "category" if !parsing_article =>
-                {
+                "category" if !parsing_article => {
                     feed.categories.push(content);
                 }
-                "docs" if !parsing_article =>
-                {
+                "docs" if !parsing_article => {
                     feed.docs = content;
                 }
                 "cloud" if !parsing_article => {
@@ -170,8 +182,9 @@ impl Feed { // Also I was looking it up and you can handle most of this with a D
                 "ttl" if !parsing_article => {
                     feed.ttl = content;
                 }
-                "image" if !parsing_article => // This has sub-elements that I don't know how I
-                                               // should deal with 
+                "image" if !parsing_article =>
+                // This has sub-elements that I don't know how I
+                // should deal with
                 {
                     feed.image = content;
                 }
@@ -285,7 +298,7 @@ impl Feed { // Also I was looking it up and you can handle most of this with a D
 
                 Ok(Event::Text(e)) => {
                     let content = e.decode()?.into_owned();
-                    
+
                     if parsing_image
                         && (last_tag_name.as_deref() == Some("url")
                             || last_tag_name.as_deref() == Some("image"))
@@ -323,7 +336,7 @@ impl Feed { // Also I was looking it up and you can handle most of this with a D
 
                 Ok(Event::End(e)) => {
                     let tag_name = String::from_utf8_lossy(e.name().as_ref()).to_string();
-                    
+
                     if tag_name == "item" {
                         parsing_article = false;
                         feed.articles.push(current_article);
@@ -343,7 +356,6 @@ impl Feed { // Also I was looking it up and you can handle most of this with a D
 
                 _ => {}
             }
-            buf.clear();
         }
     }
 }

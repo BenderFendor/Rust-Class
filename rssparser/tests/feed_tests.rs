@@ -1,8 +1,8 @@
 use rssparser::Feed; // Adjust the module path as necessary
 
 #[cfg(test)] // This is maybe the dumbest thing I've ever done in Rust but I wanted to
-              // practice writing tests for Rust and this seemed like a good idea 
-              // It's way to many tests tho.
+// practice writing tests for Rust and this seemed like a good idea
+// It's way to many tests tho.
 mod tests {
     use super::*;
 
@@ -83,7 +83,7 @@ mod tests {
 
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         assert_eq!(feed.articles.len(), 1);
-        
+
         let article = &feed.articles[0];
         assert_eq!(article.title, "First Article");
         assert_eq!(article.url, "http://example.com/1");
@@ -135,7 +135,7 @@ mod tests {
 
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         let article = &feed.articles[0];
-        
+
         assert_eq!(article.title, "Title with <special> characters");
         assert_eq!(article.desc, "<p>HTML content</p>");
         assert_eq!(article.content, "<div>Full content</div>");
@@ -157,7 +157,7 @@ mod tests {
 
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         let article = &feed.articles[0];
-        
+
         assert_eq!(article.categories.len(), 2);
         assert_eq!(article.categories[0], "News");
         assert_eq!(article.categories[1], "World");
@@ -178,7 +178,7 @@ mod tests {
 
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         let article = &feed.articles[0];
-        
+
         assert_eq!(article.image_url, "http://example.com/image.jpg");
     }
 
@@ -198,8 +198,11 @@ mod tests {
 
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         let article = &feed.articles[0];
-        
-        assert_eq!(article.image_url, "http://example.com/1.jpg, http://example.com/2.jpg");
+
+        assert_eq!(
+            article.image_url,
+            "http://example.com/1.jpg, http://example.com/2.jpg"
+        );
     }
 
     #[test]
@@ -217,7 +220,7 @@ mod tests {
 
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         let article = &feed.articles[0];
-        
+
         assert_eq!(article.author, "Jane Smith");
     }
 
@@ -237,7 +240,7 @@ mod tests {
 
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         let article = &feed.articles[0];
-        
+
         assert_eq!(article.author, "Primary Author");
     }
 
@@ -268,7 +271,7 @@ mod tests {
         assert_eq!(feed.name, "");
         assert_eq!(feed.articles.len(), 0);
     }
-    
+
     #[test]
     fn test_skip_hours_days() {
         let xml = r#"
@@ -279,12 +282,12 @@ mod tests {
                 </channel>
             </rss>
         "#;
-        
+
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         assert_eq!(feed.skipHours, "6");
         assert_eq!(feed.skipDays, "Saturday");
     }
-    
+
     #[test]
     fn test_cloud_tag() {
         let xml = r#"
@@ -294,7 +297,7 @@ mod tests {
                 </channel>
             </rss>
         "#;
-        
+
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         assert_eq!(feed.cloud, "");
     }
@@ -308,7 +311,7 @@ mod tests {
                 </channel>
             </rss>
         "#;
-        
+
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         assert!(feed.rating.contains("PICS-1.1"));
     }
@@ -322,7 +325,7 @@ mod tests {
                 </channel>
             </rss>
         "#;
-        
+
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         assert_eq!(feed.image, "http://example.com/logo.png");
     }
@@ -336,7 +339,7 @@ mod tests {
                 </channel>
             </rss>
         "#;
-        
+
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         assert_eq!(feed.docs, "http://blogs.law.harvard.edu/tech/rss");
     }
@@ -363,7 +366,7 @@ mod tests {
 
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         let article = &feed.articles[0];
-        
+
         assert_eq!(article.title, "Complete Article");
         assert_eq!(article.url, "http://example.com/article");
         assert_eq!(article.desc, "Article description");
@@ -398,7 +401,7 @@ mod tests {
         "#;
 
         let feed = Feed::parse(xml).expect("Failed to parse feed");
-        
+
         assert_eq!(feed.name, "Complex Feed");
         assert_eq!(feed.description, "A complex feed with various elements");
         assert_eq!(feed.link, "http://example.com");
@@ -421,7 +424,7 @@ mod tests {
         "#;
 
         let feed = Feed::parse(xml).expect("Failed to parse feed");
-        
+
         assert_eq!(feed.name, "Title with spaces");
         assert_eq!(feed.articles[0].title, "Article Title");
     }
@@ -442,7 +445,7 @@ mod tests {
 
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         let article = &feed.articles[0];
-        
+
         assert_eq!(article.categories.len(), 1);
         assert_eq!(article.categories[0], "Real Category");
     }
@@ -461,7 +464,7 @@ mod tests {
 
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         let article = &feed.articles[0];
-        
+
         assert_eq!(article.title, "Title with special content");
     }
 
@@ -479,7 +482,7 @@ mod tests {
 
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         let article = &feed.articles[0];
-        
+
         assert_eq!(article.title, "Minimal Article");
         assert_eq!(article.author, "");
         assert_eq!(article.date, "");
@@ -500,7 +503,7 @@ mod tests {
         "#;
 
         let feed = Feed::parse(xml).expect("Failed to parse empty feed");
-        
+
         assert_eq!(feed.name, "");
         assert_eq!(feed.description, "");
         assert_eq!(feed.link, "");
@@ -559,7 +562,7 @@ mod tests {
 
         let feed = Feed::parse(&xml).expect("Failed to parse feed");
         let article = &feed.articles[0];
-        
+
         assert!(!article.desc.is_empty());
         assert!(article.desc.len() > 1000);
     }
@@ -583,7 +586,7 @@ mod tests {
         "#;
 
         let feed = Feed::parse(xml).expect("Failed to parse feed");
-        
+
         assert_eq!(feed.name, "Feed Title");
         assert_eq!(feed.articles.len(), 2);
         assert_eq!(feed.articles[0].title, "Article 1");
@@ -607,7 +610,7 @@ mod tests {
 
         let feed = Feed::parse(xml).expect("Failed to parse feed");
         let article = &feed.articles[0];
-        
+
         assert!(article.title.contains("café"));
         assert!(article.title.contains("Ñoño"));
     }
@@ -629,7 +632,7 @@ mod tests {
         "#;
 
         let feed = Feed::parse(xml).expect("Failed to parse feed");
-        
+
         assert_eq!(feed.articles[0].categories.len(), 1);
         assert_eq!(feed.articles[1].categories.len(), 0);
     }
@@ -658,7 +661,10 @@ mod tests {
 
         let feed = Feed::parse(xml).expect("Failed to parse RSS 0.90");
         assert_eq!(feed.name, "RSS 0.90 Feed");
-        assert_eq!(feed.description, "Test feed for RSS 0.90 (RDF Site Summary)");
+        assert_eq!(
+            feed.description,
+            "Test feed for RSS 0.90 (RDF Site Summary)"
+        );
         assert_eq!(feed.link, "http://example.com");
         assert_eq!(feed.articles.len(), 2);
         assert_eq!(feed.articles[0].title, "First Article");
@@ -689,7 +695,10 @@ mod tests {
 
         let feed = Feed::parse(xml).expect("Failed to parse RSS 0.91");
         assert_eq!(feed.name, "RSS 0.91 Feed");
-        assert_eq!(feed.description, "Test feed for RSS 0.91 (Rich Site Summary)");
+        assert_eq!(
+            feed.description,
+            "Test feed for RSS 0.91 (Rich Site Summary)"
+        );
         assert_eq!(feed.language, "en-us");
         assert_eq!(feed.copyright, "2024 Example Corp");
         assert_eq!(feed.managingEditor, "editor@example.com");
@@ -781,13 +790,16 @@ mod tests {
         let feed = Feed::parse(xml).expect("Failed to parse RSS 2.0");
         assert_eq!(feed.name, "RSS 2.0 Feed");
         assert_eq!(feed.link, "https://example.com");
-        assert_eq!(feed.description, "Test feed for RSS 2.0 (Really Simple Syndication)");
+        assert_eq!(
+            feed.description,
+            "Test feed for RSS 2.0 (Really Simple Syndication)"
+        );
         assert_eq!(feed.language, "en-us");
         assert_eq!(feed.copyright, "2024 Example");
         assert_eq!(feed.generator, "Custom RSS Parser");
         assert_eq!(feed.ttl, "60");
         assert_eq!(feed.articles.len(), 2);
-        
+
         let first = &feed.articles[0];
         assert_eq!(first.title, "RSS 2.0 Article 1");
         assert_eq!(first.author, "Author One");
@@ -796,7 +808,7 @@ mod tests {
         assert_eq!(first.categories[1], "Programming");
         assert!(first.content.contains("Full HTML content for article 1"));
         assert_eq!(first.image_url, "https://example.com/image1.jpg");
-        
+
         let second = &feed.articles[1];
         assert_eq!(second.title, "RSS 2.0 Article 2");
         assert_eq!(second.author, "Author Two");
@@ -833,22 +845,41 @@ mod tests {
         let feed = Feed::parse(xml).expect("Failed to parse podcast feed");
         assert_eq!(feed.name, "Podcast Feed");
         assert_eq!(feed.articles.len(), 2);
-        assert_eq!(feed.articles[0].image_url, "https://example.com/episode1.mp3");
-        assert_eq!(feed.articles[1].image_url, "https://example.com/episode2.mp3");
+        assert_eq!(
+            feed.articles[0].image_url,
+            "https://example.com/episode1.mp3"
+        );
+        assert_eq!(
+            feed.articles[1].image_url,
+            "https://example.com/episode2.mp3"
+        );
     }
 
     #[test]
     fn test_all_rss_versions_compatibility() {
         let feeds = vec![
-            ("RSS 0.90", r#"<rss version="0.90"><channel><title>v0.90</title><item><title>Item</title></item></channel></rss>"#),
-            ("RSS 0.91", r#"<rss version="0.91"><channel><title>v0.91</title><item><title>Item</title></item></channel></rss>"#),
-            ("RSS 2.0", r#"<rss version="2.0"><channel><title>v2.0</title><item><title>Item</title></item></channel></rss>"#),
+            (
+                "RSS 0.90",
+                r#"<rss version="0.90"><channel><title>v0.90</title><item><title>Item</title></item></channel></rss>"#,
+            ),
+            (
+                "RSS 0.91",
+                r#"<rss version="0.91"><channel><title>v0.91</title><item><title>Item</title></item></channel></rss>"#,
+            ),
+            (
+                "RSS 2.0",
+                r#"<rss version="2.0"><channel><title>v2.0</title><item><title>Item</title></item></channel></rss>"#,
+            ),
         ];
 
         for (version_name, xml) in feeds {
             let feed = Feed::parse(xml).expect(&format!("Failed to parse {}", version_name));
             assert_eq!(feed.articles.len(), 1, "Failed for {}", version_name);
-            assert_eq!(feed.articles[0].title, "Item", "Failed for {}", version_name);
+            assert_eq!(
+                feed.articles[0].title, "Item",
+                "Failed for {}",
+                version_name
+            );
         }
     }
 
@@ -889,8 +920,7 @@ mod tests {
             Ok(feed) => {
                 assert_eq!(feed.articles.len(), 0, "HTML feed should have no articles");
             }
-            Err(_) => {
-            }
+            Err(_) => {}
         }
     }
 
@@ -963,7 +993,10 @@ mod tests {
         "#;
 
         let result = Feed::parse(xml);
-        assert!(result.is_err(), "Should fail with script tag and mismatched closing");
+        assert!(
+            result.is_err(),
+            "Should fail with script tag and mismatched closing"
+        );
     }
 
     #[test]
@@ -986,8 +1019,7 @@ mod tests {
             Ok(feed) => {
                 assert!(feed.articles.len() >= 1);
             }
-            Err(_) => {
-            }
+            Err(_) => {}
         }
     }
 
@@ -999,8 +1031,7 @@ mod tests {
             Ok(feed) => {
                 assert_eq!(feed.articles.len(), 0);
             }
-            Err(_) => {
-            }
+            Err(_) => {}
         }
     }
 
@@ -1012,8 +1043,7 @@ mod tests {
             Ok(feed) => {
                 assert_eq!(feed.articles.len(), 0);
             }
-            Err(_) => {
-            }
+            Err(_) => {}
         }
     }
 
